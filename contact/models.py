@@ -2,16 +2,17 @@ from django.db import models
 from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
-from rapidsms_httprouter.managers import BulkInsertManager
-from rapidsms_httprouter.models import Message
+#from rapidsms_httprouter.managers import BulkInsertManager
+#from rapidsms_httprouter.models import Message
+from rapidsms.router.db.models import Message
 from rapidsms.models import Contact, Connection
 import re
 
-c_bulk_mgr = BulkInsertManager()
-c_bulk_mgr.contribute_to_class(Contact, 'bulk')
-
-cn_bulk_mgr = BulkInsertManager()
-cn_bulk_mgr.contribute_to_class(Connection, 'bulk')
+#c_bulk_mgr = BulkInsertManager()
+#c_bulk_mgr.contribute_to_class(Contact, 'bulk')
+#
+#cn_bulk_mgr = BulkInsertManager()
+#cn_bulk_mgr.contribute_to_class(Connection, 'bulk')
 
 class MassText(models.Model):
     sites = models.ManyToManyField(Site)
@@ -21,7 +22,8 @@ class MassText(models.Model):
     text = models.TextField()
     objects = models.Manager()
     on_site = CurrentSiteManager('sites')
-    bulk = BulkInsertManager()
+#    bulk = BulkInsertManager()
+    bulk = models.Manager()
 
     class Meta:
         permissions = (
