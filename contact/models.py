@@ -3,8 +3,8 @@ from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 #from rapidsms_httprouter.managers import BulkInsertManager
-#from rapidsms_httprouter.models import Message
-from rapidsms.router.db.models import Message
+from rapidsms_httprouter.models import Message
+#from rapidsms.router.db.models import Message
 from rapidsms.models import Contact, Connection
 import re
 
