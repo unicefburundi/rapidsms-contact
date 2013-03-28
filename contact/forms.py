@@ -5,8 +5,9 @@ from rapidsms.models import Contact, Connection
 from django.core.paginator import Paginator, Page
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from rapidsms_httprouter.router import get_router, \
-    start_sending_mass_messages, stop_sending_mass_messages
+#from rapidsms_httprouter.router import get_router, \
+#    start_sending_mass_messages, stop_sending_mass_messages
+from rapidsms_httprouter.router import get_router
 from rapidsms_httprouter.models import Message
 from rapidsms.messages.outgoing import OutgoingMessage
 from generic.forms import ActionForm, FilterForm
