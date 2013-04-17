@@ -11,8 +11,8 @@ class DemographicContact(models.Model):
     gender = models.CharField(
             max_length=1,
             choices=(('M', 'Male'), ('F', 'Female')), null=True)
-    village = models.ForeignKey('locations.Location', blank=True, null=True, related_name='villagers')
-    village_name = models.CharField(max_length=100, blank=True, null=True)
+    colline = models.ForeignKey('locations.Location', blank=True, null=True, related_name='colline_dwellers')
+    colline_name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         abstract = True
