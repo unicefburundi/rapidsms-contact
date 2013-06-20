@@ -380,10 +380,10 @@ class AssignGroupForm(ActionForm):
         else:
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
-            if self.request.user.is_authenticated():
-                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk', flat=True)), required=False)
-            elif self.request.user.is_superuser:
+            if self.request.user.is_superuser:
                 self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+            elif self.request.user.is_authenticated and not self.request.user.is_superuser:
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk', flat=True)), required=False)
             else:
                 self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
 
@@ -407,7 +407,9 @@ class RemoveGroupForm(ActionForm):
         else:
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
-            if self.request.user.is_authenticated():
+            if self.request.user.is_superuser:
+                self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+            elif self.request.user.is_authenticated and not self.request.user.is_superuser:
                 self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk', flat=True)), required=False)
             else:
                 self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
