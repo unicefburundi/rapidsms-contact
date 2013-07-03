@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import logging
 from django import forms
 from rapidsms.models import Contact, Connection
-from django.core.paginator import Paginator, Page
 from django.contrib.auth.models import Group
 from django.db.models import Q
 #from rapidsms_httprouter.router import get_router, \
@@ -17,11 +17,9 @@ from rapidsms.contrib.locations.models import Location
 from uganda_common.forms import SMSInput
 from django.conf import settings
 import datetime
-from rapidsms_httprouter.models import Message
-from django.forms.util import ErrorList
 from django.core.exceptions import FieldError
 
-
+logger = logging.getLogger(__name__)
 class FlaggedMessageForm(forms.ModelForm):
     class Meta:
         model = Flag
@@ -71,20 +69,14 @@ class FilterGroupsForm(FilterForm):
         else:
             forms.Form.__init__(self, **kwargs)
         if hasattr(Contact, 'groups'):
-            if self.request.user.is_authenticated():
-                if self.request.user.groups.order_by('-pk') == Group.objects.order_by('-pk'):
-                    choices = ((-1, 'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
-                    self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
-                else:
-                    self.fields['groups'] = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(pk__in=self.request.user.groups.values_list('pk', flat=True)), required=True)
-            else:
-                choices = ((-1, 'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
-                self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
+            choices = ((-1, 'No Group'),) + tuple([(int(g.pk), g.name) for g in Group.objects.all().order_by('name')])
+            self.fields['groups'] = forms.MultipleChoiceField(choices=choices, required=True)
 
 
     def filter(self, request, queryset):
         groups_pk = self.cleaned_data['groups']
         if '-1' in groups_pk:
+
             groups_pk.remove('-1')
             if len(groups_pk):
                 try:
@@ -109,9 +101,9 @@ class FilterGroupsForm(FilterForm):
                 q=None
                 for f in Group.objects.filter(pk__in=groups_pk).values_list('name',flat=True):
                     if not q:
-                        q=Q(group__icontains=f)
+                        q=Q(group__iregex="\m%s\y"%f)
                     else:
-                        q=q | Q(group__icontains=f)
+                        q=q | Q(group__iregex="\m%s\y"%f)
                 return queryset.filter(q)
 
 
@@ -312,8 +304,10 @@ class MassTextForm(ActionForm):
         return text
 
     def perform(self, request, results):
+        if type(results).__name__ != 'QuerySet':
+            results = Contact.objects.filter(pk__in=request.REQUEST.get('results',""))
         if results is None or len(results) == 0:
-            return ('A message must have one or more recipients!', 'error')
+            return 'A message must have one or more recipients!', 'error'
 
         if request.user and request.user.has_perm('contact.can_message'):
             if type(results[0]).__name__ == 'Reporters':
@@ -322,6 +316,7 @@ class MassTextForm(ActionForm):
                 [r.default_connection.split(',')[1] if len(r.default_connection.split(',')) > 1 else 0 for r in results]
                 connections = list(Connection.objects.filter(pk__in=con_ids).distinct())
                 contacts = list(Contact.objects.filter(pk__in=results.values_list('id', flat=True)))
+                print contacts
             else:
                 connections = \
                 list(Connection.objects.filter(contact__pk__in=results.values_list('id', flat=True)).distinct())
@@ -339,9 +334,9 @@ class MassTextForm(ActionForm):
             if settings.SITE_ID:
                 masstext.sites.add(Site.objects.get_current())
 
-            return ('Message successfully sent to %d numbers' % len(connections), 'success',)
+            return 'Message successfully sent to %d numbers' % len(connections), 'success',
         else:
-            return ("You don't have permission to send messages!", 'error',)
+            return "You don't have permission to send messages!", 'error',
 
 class ReplyTextForm(ActionForm):
 
