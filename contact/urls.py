@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, include, url
 from .views import add_contact, new_contact, view_message_history
 from .forms import FreeSearchForm, FilterGroupsForm, MassTextForm
 from rapidsms.models import Contact
