@@ -199,7 +199,7 @@ class SearchInMessagesForm(FilterForm):
                                    | Q(connection__contact__reporting_location__name__icontains=search))
                     query = query | q
                 else:
-                    q = queryset.filter(Q(connection__pk__icontains=term))
+                    q = queryset.filter(Q(connection__pk=term))
                     query = query | q
         return query
 
