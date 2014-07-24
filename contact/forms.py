@@ -18,8 +18,10 @@ from uganda_common.forms import SMSInput
 from django.conf import settings
 import datetime
 from django.core.exceptions import FieldError
-
+from ureport.utils import normalize_query
 logger = logging.getLogger(__name__)
+
+
 class FlaggedMessageForm(forms.ModelForm):
     class Meta:
         model = Flag
@@ -171,6 +173,35 @@ class FreeSearchTextForm(FilterForm):
     def filter(self, request, queryset):
         search = self.cleaned_data['search']
         return queryset.filter(text__icontains=search)
+
+
+class SearchInMessagesForm(FilterForm):
+
+    """ concrete implementation of filter form """
+
+    search = forms.CharField(max_length=100, required=True, label="Free-form search",
+                             #help_text="Use 'or' to search for multiple names",
+                             widget=forms.TextInput(attrs={'class':'itext', 'size':14}))
+
+    def filter(self, request, queryset):
+        search = self.cleaned_data['search']
+        # import ipdb; ipdb.set_trace()
+        query = Message.objects.none()
+        if search == "":
+            return queryset
+        else:
+            terms = normalize_query(search)
+            for term in terms:
+                try:
+                    term = int(term)
+                except Exception:
+                    q = queryset.filter(Q(text__icontains=search)
+                                   | Q(connection__contact__reporting_location__name__icontains=search))
+                    query = query | q
+                else:
+                    q = queryset.filter(Q(connection__pk__icontains=term))
+                    query = query | q
+        return query
 
 class HandledByForm(FilterForm):
     type = forms.ChoiceField(
