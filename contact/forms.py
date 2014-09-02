@@ -30,8 +30,9 @@ class FlaggedMessageForm(forms.ModelForm):
     def save(self, force_insert=False, force_update=False, commit=True):    #we overide the save method
         instance = super(FlaggedMessageForm, self).save(commit=False)
         name = "_".join( self.cleaned_data["name"].split() )                #we replace spaces by "_"
-        alert_group = Group.objects.create(name="alert_%s" % name)          #We create a group starting by alert
-        alert_group.save()
+        if not Group.objects.filter(name="alert_%s" % name) :
+            alert_group = Group.objects.create(name="alert_%s" % name)      #We create a group starting by alert
+            alert_group.save()
         if commit:
             instance.save()
         return instance
